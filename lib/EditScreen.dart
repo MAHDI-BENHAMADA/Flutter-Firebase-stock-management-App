@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:wa_inventory/Services/cloudinary_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import "package:wa_inventory/Services/database.dart";
@@ -49,9 +49,39 @@ class _EditScreenState extends State<EditScreen> {
     _pickedImage = File(widget.cuProduct.imageUrl);
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _showImageSourceActionSheet(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  _pickImage(ImageSource.gallery);
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Camera'),
+                onTap: () {
+                  _pickImage(ImageSource.camera);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     final pickedImage =
-        await _imagePicker.pickImage(source: ImageSource.gallery);
+        await _imagePicker.pickImage(source: source);
 
     if (pickedImage != null) {
       setState(() {
@@ -102,23 +132,31 @@ class _EditScreenState extends State<EditScreen> {
               const SizedBox(
                 height: 30,
               ),
-              InkWell(
-                onTap: _pickImage,
-                child: Container(
-                  alignment: Alignment.center,
-                  height: 150.0,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color: const Color.fromRGBO(107, 59, 225, 1)),
-                    borderRadius: BorderRadius.circular(10),
+              Center(
+                child: InkWell(
+                  onTap: () => _showImageSourceActionSheet(context),
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: 150.0,
+                    width: 150.0,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: const Color.fromRGBO(107, 59, 225, 1)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: _pickedImage.path.isEmpty
+                        ? const Icon(Icons.camera_alt,
+                            size: 60.0, color: Color.fromRGBO(107, 59, 225, 1))
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              _pickedImage, // Use the File object here
+                              width: 150.0,
+                              height: 150.0,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
-                  child: _pickedImage.path.isEmpty
-                      ? const Icon(Icons.camera_alt,
-                          size: 60.0, color: Color.fromRGBO(107, 59, 225, 1))
-                      : Image.file(
-                          _pickedImage, // Use the File object here
-                          fit: BoxFit.cover,
-                        ),
                 ),
               ),
               const SizedBox(height: 30.0),
@@ -312,20 +350,11 @@ class _EditScreenState extends State<EditScreen> {
                     }
 
                     // Upload the new image if selected
-                    if (_pickedImage.path != widget.cuProduct.imageUrl) {
-                      final String fileName =
-                          DateTime.now().millisecondsSinceEpoch.toString();
-                      final Reference storageReference = FirebaseStorage
-                          .instance
-                          .ref()
-                          .child('product_images/$fileName.jpg');
-                      final UploadTask uploadTask =
-                          storageReference.putFile(_pickedImage);
-
-                      TaskSnapshot taskSnapshot = await uploadTask;
-                      String imageUrl = await taskSnapshot.ref.getDownloadURL();
-                      updatedProductData['imageUrl'] =
-                          imageUrl; // Update the image URL
+                    if (_pickedImage.path != widget.cuProduct.imageUrl &&
+                        _pickedImage.existsSync()) {
+                      final String imageUrl =
+                          await CloudinaryService.uploadImage(_pickedImage);
+                      updatedProductData['imageUrl'] = imageUrl;
                     }
 
                     try {

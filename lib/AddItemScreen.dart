@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:wa_inventory/models/products.dart';
+import 'package:wa_inventory/Services/cloudinary_service.dart';
 
 class AddProductForm extends StatefulWidget {
   const AddProductForm({super.key});
@@ -37,9 +37,39 @@ class _AddProductFormState extends State<AddProductForm> {
     _firestore = FirebaseFirestore.instance;
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _showImageSourceActionSheet(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  _pickImage(ImageSource.gallery);
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Camera'),
+                onTap: () {
+                  _pickImage(ImageSource.camera);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     final pickedImage =
-        await _imagePicker.pickImage(source: ImageSource.gallery);
+        await _imagePicker.pickImage(source: source);
 
     if (pickedImage != null) {
       setState(() {
@@ -50,17 +80,8 @@ class _AddProductFormState extends State<AddProductForm> {
 
   Future<void> _addProductToFirestore(Product newProduct) async {
     try {
-      final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final Reference storageReference =
-          FirebaseStorage.instance.ref().child('product_images/$fileName.jpg');
-      final UploadTask uploadTask = storageReference.putFile(_pickedImage);
-
-      // final TaskSnapshot taskSnapshot = await uploadTask;
-      // final String imageUrl = await taskSnapshot.ref.getDownloadURL();
-      final TaskSnapshot taskSnapshot =
-          await uploadTask.whenComplete(() => null);
-
-      final String imageUrl = await taskSnapshot.ref.getDownloadURL();
+      // Upload image to Cloudinary
+      final String imageUrl = await CloudinaryService.uploadImage(_pickedImage);
 
       await _firestore
           .collection('users')
@@ -74,17 +95,18 @@ class _AddProductFormState extends State<AddProductForm> {
         'distributor': newProduct.distributor,
         'category': newProduct.category,
         'expiredate': newProduct.expiredate,
-        'imageUrl': imageUrl, // Store the image URL
+        'imageUrl': imageUrl,
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product added successfully')),
+      );
     } catch (e) {
       print('Error adding product: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error adding product: $e')),
       );
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product added to Firestore')),
-    );
   }
 
   @override
@@ -107,23 +129,31 @@ class _AddProductFormState extends State<AddProductForm> {
               const SizedBox(
                 height: 30,
               ),
-              InkWell(
-                onTap: _pickImage,
-                child: Container(
-                  alignment: Alignment.center,
-                  height: 150.0,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color: const Color.fromRGBO(107, 59, 225, 1)),
-                    borderRadius: BorderRadius.circular(10),
+              Center(
+                child: InkWell(
+                  onTap: () => _showImageSourceActionSheet(context),
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: 150.0,
+                    width: 150.0,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: const Color.fromRGBO(107, 59, 225, 1)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: _pickedImage.path.isEmpty
+                        ? const Icon(Icons.camera_alt,
+                            size: 60.0, color: Color.fromRGBO(107, 59, 225, 1))
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              _pickedImage, // Use the File object here
+                              width: 150.0,
+                              height: 150.0,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
-                  child: _pickedImage.path.isEmpty
-                      ? const Icon(Icons.camera_alt,
-                          size: 60.0, color: Color.fromRGBO(107, 59, 225, 1))
-                      : Image.file(
-                          _pickedImage, // Use the File object here
-                          fit: BoxFit.cover,
-                        ),
                 ),
               ),
               const SizedBox(height: 30.0),
@@ -281,8 +311,17 @@ class _AddProductFormState extends State<AddProductForm> {
               ])),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      if (_pickedImage.path.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please select an image'),
+                          ),
+                        );
+                        return;
+                      }
+
                       Product newProduct = Product(
                         name: _nameController.text,
                         pid: _pidController.text,
@@ -294,21 +333,19 @@ class _AddProductFormState extends State<AddProductForm> {
                         imageUrl: _pickedImage.path, // Use _pickedImage path
                       );
 
-                      _addProductToFirestore(newProduct);
+                      await _addProductToFirestore(newProduct);
+
+                      // Only clear fields after successful upload
                       _nameController.clear();
                       _quantityController.clear();
                       _priceController.clear();
                       _distributorController.clear();
                       _categoryController.clear();
+                      _pidController.clear();
+                      _expiredateController.clear();
                       setState(() {
                         _pickedImage = File(''); // Clear the picked image
                       });
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Product added successfully'),
-                        ),
-                      );
                     }
                   },
                   style: ButtonStyle(

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "133953173361",
-    "project_id": "inventory-mgmt-app",
-    "storage_bucket": "inventory-mgmt-app.appspot.com"
+    "project_number": "720094966565",
+    "project_id": "fir-ce412",
+    "storage_bucket": "fir-ce412.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:133953173361:android:bfcddd3a511322aba8e8d0",
+        "mobilesdk_app_id": "1:720094966565:android:301cebf3176a645f6ce0cc",
         "android_client_info": {
           "package_name": "com.example.wa_inventory"
         }
@@ -15,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB5N2_gNFrHuNRoY4PBvSakbuOLaXlc5c0"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:133953173361:android:68a1b16ffd6eca54a8e8d0",
-        "android_client_info": {
-          "package_name": "com.example.wa_inventory_app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB5N2_gNFrHuNRoY4PBvSakbuOLaXlc5c0"
+          "current_key": "AIzaSyCm0MEySY7s0b310ekw4BQSgMhRQEMioFM"
         }
       ],
       "services": {
