@@ -1,4 +1,4 @@
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:wa_inventory/EditScreen.dart';
 import 'package:wa_inventory/models/products.dart' as pmodel;
@@ -34,20 +34,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     final data = [
-      charts.Series<StockData, String>(
-        id: 'Stock',
-        domainFn: (StockData series, _) => series.label,
-        measureFn: (StockData series, _) => series.value,
-        data: [
-          StockData('Stock In', 123, Colors.green),
-          StockData('Stock Out', 567, Colors.red),
-          StockData('Running Out', 45678, Colors.yellow),
-        ],
-        colorFn: (StockData series, _) =>
-            charts.ColorUtil.fromDartColor(series.color),
-        labelAccessorFn: (StockData series, _) =>
-            '${series.label}: ${series.value}',
-      ),
+      StockData('Stock In', 123, Colors.green),
+      StockData('Stock Out', 567, Colors.red),
+      StockData('Running Out', 45678, Colors.yellow),
     ];
 
     return Scaffold(
@@ -124,9 +113,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             child: SizedBox(
                               height: MediaQuery.of(context).size.height * .25,
                               width: MediaQuery.of(context).size.width * .4,
-                              child: charts.PieChart(
-                                data,
-                                animate: true,
+                              child: PieChart(
+                                PieChartData(
+                                  sectionsSpace: 2,
+                                  centerSpaceRadius: 28,
+                                  sections: data
+                                      .map(
+                                        (item) => PieChartSectionData(
+                                          color: item.color,
+                                          value: item.value,
+                                          title: item.value.toInt().toString(),
+                                          radius: 56,
+                                          titleStyle: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
                               ),
                             ),
                           ),
