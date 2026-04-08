@@ -42,6 +42,66 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
   static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
 
   final List<_DemandItem> _items = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchZeroSkus();
+  }
+
+  Future<void> _fetchZeroSkus() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final snap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('products')
+          .get();
+
+      // We preserve quantities the user might have already typed for items that are STILL out of stock
+      final Map<String, String> existingQtys = {
+        for (var item in _items) 
+           if (item.docId != null) item.docId!: item.qtyController.text
+      };
+
+      // Also keep manually added custom items
+      final List<_DemandItem> customItems = _items.where((i) => i.docId == null).toList();
+
+      _items.clear();
+
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final skus = data['numberOfSkus'] as int?;
+        final legacyQty = data['quantity'] as int?;
+        
+        final bool isZeroSkus = (skus != null && skus <= 0);
+        final bool isLegacyZero = (skus == null && (legacyQty == null || legacyQty <= 0));
+
+        if (isZeroSkus || isLegacyZero) {
+          final docId = doc.id;
+          final item = _DemandItem(
+            docId: docId,
+            name: (data['name'] as String?)?.trim() ?? 'Unnamed',
+            category: (data['category'] as String?)?.trim() ?? 'Uncategorized',
+            currentStock: skus ?? legacyQty ?? 0,
+          );
+          if (existingQtys.containsKey(docId)) {
+            item.qtyController.text = existingQtys[docId]!;
+          }
+          _items.add(item);
+        }
+      }
+      
+      _items.addAll(customItems);
+    } catch (e) {
+      // Ignored for now
+    }
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   void initState() {
@@ -335,14 +395,25 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
             ),
         ],
       ),
-      body: _items.isEmpty
-          ? _EmptyState(onAddItem: _showAddItemSheet)
-          : _ItemList(
-              items: _items,
-              onRemove: _removeItem,
-              onAddMore: _showAddItemSheet,
-              onPrint: _printDemand,
-            ),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: _purple))
+        : RefreshIndicator(
+            color: _purple,
+            onRefresh: _fetchZeroSkus,
+            child: _items.isEmpty
+                ? Stack(
+                    children: [
+                      ListView(physics: const AlwaysScrollableScrollPhysics()), // Allows pull-to-refresh
+                      _EmptyState(onAddItem: _showAddItemSheet),
+                    ],
+                  )
+                : _ItemList(
+                    items: _items,
+                    onRemove: _removeItem,
+                    onAddMore: _showAddItemSheet,
+                    onPrint: _printDemand,
+                  ),
+          ),
     );
   }
 }
@@ -440,6 +511,7 @@ class _ItemListState extends State<_ItemList> {
       children: [
         Expanded(
           child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             itemCount: widget.items.length + 1, // +1 for "add more" row
             itemBuilder: (context, i) {
