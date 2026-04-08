@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wa_inventory/Services/cloudinary_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -437,6 +438,36 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) {
+                        GoRouter.of(context).go('/login');
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red, width: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 32),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.logout, color: Colors.red),
+                    label: SizedBox(
+                      width: MediaQuery.of(context).size.width * .6,
+                      child: const Center(
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               )
             : const CircularProgressIndicator(),

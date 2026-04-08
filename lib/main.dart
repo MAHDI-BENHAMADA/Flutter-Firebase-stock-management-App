@@ -92,22 +92,10 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             const Text("Welcome to your solution !",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
-            Stack(
-              children: [
-                Image.asset("assets/images/splesh.png"),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * .2,
-                  left: MediaQuery.of(context).size.width * .45,
-                  child: const Center(child: CircularProgressIndicator()),
-                )
-              ],
+            const SizedBox(height: 30),
+            const CircularProgressIndicator(
+              color: Color.fromRGBO(107, 59, 225, 1),
             ),
-            const Text("@ Wubishet Asbe",
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.blueAccent,
-                )),
           ],
         ), // Show a loading indicator or logo
       ),
