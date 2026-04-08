@@ -122,4 +122,50 @@ class FirestoreService {
 
     // Update product status or other necessary actions
   }
+
+  // ── Category management ────────────────────────────────────────────────
+
+  /// Streams the list of category names for the current user.
+  Stream<List<String>> getCategoriesStream() {
+    return _firestore
+        .collection('users')
+        .doc(user!.uid)
+        .collection('categories')
+        .orderBy('createdAt')
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => d['name'] as String).toList());
+  }
+
+  /// Adds a new category (ignores duplicates).
+  Future<void> addCategory(String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    // prevent duplicates (case-insensitive check)
+    final existing = await _firestore
+        .collection('users')
+        .doc(user!.uid)
+        .collection('categories')
+        .where('name', isEqualTo: trimmed)
+        .get();
+    if (existing.docs.isNotEmpty) return;
+    await _firestore
+        .collection('users')
+        .doc(user!.uid)
+        .collection('categories')
+        .add({'name': trimmed, 'createdAt': FieldValue.serverTimestamp()});
+  }
+
+  /// Deletes a category by name.
+  Future<void> deleteCategory(String name) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(user!.uid)
+        .collection('categories')
+        .where('name', isEqualTo: name)
+        .get();
+    for (final doc in snapshot.docs) {
+      await doc.reference.delete();
+    }
+  }
 }

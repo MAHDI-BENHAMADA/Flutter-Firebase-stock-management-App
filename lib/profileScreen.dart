@@ -6,6 +6,7 @@ import 'package:wa_inventory/Services/cloudinary_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:wa_inventory/models/usermodel.dart';
+import 'package:wa_inventory/CategoriesManagementScreen.dart';
 
 class ProfileEditPage extends StatelessWidget {
   final myUser user;
@@ -398,12 +399,43 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: MediaQuery.of(context).size.width * .8,
                         child: const Center(
                             child: Text(
-                          'Edit',
+                          'Edit Profile',
                           style: TextStyle(
                             fontSize: 20,
                             color: Colors.white,
                           ),
                         ))),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CategoriesManagementScreen(),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: Color.fromRGBO(107, 59, 225, 1), width: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 32),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.category_outlined,
+                        color: Color.fromRGBO(107, 59, 225, 1)),
+                    label: SizedBox(
+                      width: MediaQuery.of(context).size.width * .6,
+                      child: const Center(
+                        child: Text(
+                          'Manage Categories',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color.fromRGBO(107, 59, 225, 1),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               )

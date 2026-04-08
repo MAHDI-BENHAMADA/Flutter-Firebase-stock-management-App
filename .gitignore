@@ -31,6 +31,8 @@ migrate_working_dir/
 .pub/
 /build/
 /.gradle-home/
+# IDE Flutter probe temp directories
+_tmp_flutter_probe/
 
 # Symbolication related
 app.*.symbols
