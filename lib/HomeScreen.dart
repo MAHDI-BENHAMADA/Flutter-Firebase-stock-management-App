@@ -34,14 +34,11 @@ class _HomeBody extends StatelessWidget {
               .collection('products')
               .snapshots(),
           builder: (context, snapshot) {
-            // ── Header (always shown) ──────────────────────────────────────
             final header = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top bar
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(20, 16, 12, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 0),
                   child: Row(
                     children: [
                       const Text(
@@ -70,10 +67,9 @@ class _HomeBody extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Search bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const SearChBar(),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: SearChBar(),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -84,10 +80,8 @@ class _HomeBody extends StatelessWidget {
                 children: [
                   header,
                   const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(color: _purple),
-                    ),
-                  ),
+                      child: Center(
+                          child: CircularProgressIndicator(color: _purple))),
                 ],
               );
             }
@@ -97,15 +91,14 @@ class _HomeBody extends StatelessWidget {
                 children: [
                   header,
                   Expanded(
-                      child: Center(
-                          child: Text('Error: ${snapshot.error}'))),
+                      child:
+                          Center(child: Text('Error: ${snapshot.error}'))),
                 ],
               );
             }
 
             final docs = snapshot.data?.docs ?? [];
 
-            // Group products by category
             final Map<String, List<Map<String, dynamic>>> grouped = {};
             for (final doc in docs) {
               final data = doc.data() as Map<String, dynamic>;
@@ -127,20 +120,16 @@ class _HomeBody extends StatelessWidget {
                         children: [
                           Icon(Icons.inventory_2_outlined,
                               size: 80,
-                              color: _purple.withOpacity(0.2)),
+                              color: _purple.withValues(alpha: 0.2)),
                           const SizedBox(height: 16),
-                          const Text(
-                            'No products yet',
-                            style: TextStyle(
-                                fontSize: 18, color: Colors.grey),
-                          ),
+                          const Text('No products yet',
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.grey)),
                           const SizedBox(height: 6),
-                          Text(
-                            'Add products from the Add Item tab',
-                            style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade400),
-                          ),
+                          Text('Add products from the Add Item tab',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade400)),
                         ],
                       ),
                     ),
@@ -149,16 +138,14 @@ class _HomeBody extends StatelessWidget {
               );
             }
 
-            // Sort categories alphabetically
             final categories = grouped.entries.toList()
               ..sort((a, b) => a.key.compareTo(b.key));
 
-            // Stats
             final totalSkus = docs.length;
             final totalStock = docs.fold<int>(
               0,
-              (sum, doc) =>
-                  sum + ((doc.data() as Map)['quantity'] as int? ?? 0),
+              (s, doc) =>
+                  s + ((doc.data() as Map)['quantity'] as int? ?? 0),
             );
             final lowCount = categories.where((e) {
               final qty = e.value
@@ -183,7 +170,9 @@ class _HomeBody extends StatelessWidget {
                       (context, i) {
                         final entry = categories[i];
                         final totalQty = entry.value.fold<int>(
-                            0, (s, p) => s + (p['quantity'] as int? ?? 0));
+                            0,
+                            (s, p) =>
+                                s + (p['quantity'] as int? ?? 0));
                         return _CategoryCard(
                           categoryName: entry.key,
                           products: entry.value,
@@ -265,7 +254,7 @@ class _SummaryHeader extends StatelessWidget {
   Widget _divider() => Container(
         height: 36,
         width: 1,
-        color: Colors.white.withOpacity(0.25),
+        color: Colors.white.withValues(alpha: 0.25),
       );
 }
 
@@ -298,8 +287,7 @@ class _StatPill extends StatelessWidget {
           ),
         ),
         Text(label,
-            style:
-                const TextStyle(color: Colors.white70, fontSize: 11)),
+            style: const TextStyle(color: Colors.white70, fontSize: 11)),
       ],
     );
   }
@@ -324,7 +312,6 @@ class _CategoryCard extends StatefulWidget {
 
 class _CategoryCardState extends State<_CategoryCard> {
   bool _expanded = false;
-
   static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
 
   Color get _stockColor {
@@ -349,14 +336,14 @@ class _CategoryCardState extends State<_CategoryCard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _expanded
-              ? _purple.withOpacity(0.35)
+              ? _purple.withValues(alpha: 0.35)
               : Colors.grey.shade200,
         ),
         boxShadow: [
           BoxShadow(
             color: _expanded
-                ? _purple.withOpacity(0.08)
-                : Colors.black.withOpacity(0.04),
+                ? _purple.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -364,7 +351,6 @@ class _CategoryCardState extends State<_CategoryCard> {
       ),
       child: Column(
         children: [
-          // Header row
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
             borderRadius: BorderRadius.circular(16),
@@ -373,12 +359,11 @@ class _CategoryCardState extends State<_CategoryCard> {
                   horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  // Stock badge
                   Container(
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: _stockColor.withOpacity(0.12),
+                      color: _stockColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -404,7 +389,6 @@ class _CategoryCardState extends State<_CategoryCard> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  // Category name + SKU count
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,7 +410,6 @@ class _CategoryCardState extends State<_CategoryCard> {
                       ],
                     ),
                   ),
-                  // Stock badge + chevron
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -434,7 +417,7 @@ class _CategoryCardState extends State<_CategoryCard> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 9, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _stockColor.withOpacity(0.12),
+                          color: _stockColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -478,8 +461,6 @@ class _CategoryCardState extends State<_CategoryCard> {
               ),
             ),
           ),
-
-          // Expanded product list
           if (_expanded) ...[
             Divider(
                 height: 1,
@@ -497,67 +478,443 @@ class _CategoryCardState extends State<_CategoryCard> {
               itemBuilder: (context, i) {
                 final p = widget.products[i];
                 final qty = p['quantity'] as int? ?? 0;
-                return ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      p['imageUrl'] as String? ?? '',
-                      width: 42,
-                      height: 42,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: _purple.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.image_not_supported,
-                            size: 18, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    p['name'] as String? ?? '-',
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    'ID: ${p['pid'] ?? '-'}  ·  Exp: ${p['expiredate'] ?? '-'}',
-                    style: TextStyle(
-                        fontSize: 11, color: Colors.grey.shade500),
-                  ),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: qty < kLowStockThreshold
-                          ? Colors.red.withOpacity(0.1)
-                          : Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$qty units',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: qty < kLowStockThreshold
-                            ? Colors.red.shade600
-                            : Colors.green.shade700,
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    // Navigate to product detail if available
-                  },
+                final docId = p['__docId'] as String;
+                return _ProductTile(
+                  product: p,
+                  qty: qty,
+                  docId: docId,
                 );
               },
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ── Product tile with sell action ─────────────────────────────────────────────
+
+class _ProductTile extends StatelessWidget {
+  final Map<String, dynamic> product;
+  final int qty;
+  final String docId;
+
+  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
+
+  const _ProductTile({
+    required this.product,
+    required this.qty,
+    required this.docId,
+  });
+
+  void _showSellSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SellStockSheet(
+        docId: docId,
+        productName: product['name'] as String? ?? 'Product',
+        currentQty: qty,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          product['imageUrl'] as String? ?? '',
+          width: 42,
+          height: 42,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: _purple.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.image_not_supported,
+                size: 18, color: Colors.grey),
+          ),
+        ),
+      ),
+      title: Text(
+        product['name'] as String? ?? '-',
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        'ID: ${product['pid'] ?? '-'}  ·  Exp: ${product['expiredate'] ?? '-'}',
+        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Qty badge
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: qty < kLowStockThreshold
+                  ? Colors.red.withValues(alpha: 0.1)
+                  : Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '$qty units',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: qty < kLowStockThreshold
+                    ? Colors.red.shade600
+                    : Colors.green.shade700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          // Sell button
+          GestureDetector(
+            onTap: () => _showSellSheet(context),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _purple.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.remove_shopping_cart_outlined,
+                  size: 18, color: _purple),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Sell / Stock Adjust bottom sheet ──────────────────────────────────────────
+
+class _SellStockSheet extends StatefulWidget {
+  final String docId;
+  final String productName;
+  final int currentQty;
+
+  const _SellStockSheet({
+    required this.docId,
+    required this.productName,
+    required this.currentQty,
+  });
+
+  @override
+  State<_SellStockSheet> createState() => _SellStockSheetState();
+}
+
+class _SellStockSheetState extends State<_SellStockSheet> {
+  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
+
+  /// 'sell' = decrease by amount sold, 'set' = set exact new value
+  String _mode = 'sell';
+  final _amountController = TextEditingController();
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  int get _parsedAmount => int.tryParse(_amountController.text.trim()) ?? 0;
+
+  int get _previewQty {
+    if (_mode == 'sell') {
+      return (widget.currentQty - _parsedAmount).clamp(0, 999999);
+    } else {
+      return _parsedAmount.clamp(0, 999999);
+    }
+  }
+
+  Future<void> _confirm() async {
+    final amount = _parsedAmount;
+    if (amount <= 0 && _mode == 'sell') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid quantity sold')),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final ref = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('products')
+          .doc(widget.docId);
+
+      final newQty = _previewQty;
+
+      await FirebaseFirestore.instance.runTransaction((tx) async {
+        final snap = await tx.get(ref);
+        if (!snap.exists) throw Exception('Product not found');
+        tx.update(ref, {'quantity': newQty});
+      });
+
+      // Log the sale transaction if mode is 'sell'
+      if (_mode == 'sell') {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('transactions')
+            .add({
+          'productId': widget.docId,
+          'quantitySold': amount,
+          'saleDate': FieldValue.serverTimestamp(),
+        });
+      }
+
+      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_mode == 'sell'
+                ? 'Sold $amount units of ${widget.productName}'
+                : 'Stock set to $newQty units'),
+            backgroundColor: Colors.green.shade600,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _loading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Title
+            Text(
+              widget.productName,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1A2E)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Current stock: ${widget.currentQty} units',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 20),
+
+            // Mode toggle
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Row(
+                children: [
+                  _ModeTab(
+                    label: '🛒 Sell (decrease)',
+                    selected: _mode == 'sell',
+                    onTap: () => setState(() => _mode = 'sell'),
+                  ),
+                  _ModeTab(
+                    label: '✏️ Set exact stock',
+                    selected: _mode == 'set',
+                    onTap: () => setState(() => _mode = 'set'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Input
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              cursorColor: _purple,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: _mode == 'sell'
+                    ? 'Units sold'
+                    : 'New stock quantity',
+                labelStyle: const TextStyle(color: _purple),
+                hintText: _mode == 'sell' ? 'e.g. 3' : 'e.g. 50',
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: _purple, width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                ),
+              ),
+            ),
+
+            // Live preview
+            if (_amountController.text.trim().isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _previewQty < kLowStockThreshold
+                      ? Colors.red.shade50
+                      : Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _previewQty < kLowStockThreshold
+                        ? Colors.red.shade200
+                        : Colors.green.shade200,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _previewQty < kLowStockThreshold
+                          ? Icons.warning_amber_rounded
+                          : Icons.check_circle_outline,
+                      size: 16,
+                      color: _previewQty < kLowStockThreshold
+                          ? Colors.red.shade500
+                          : Colors.green.shade600,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'New stock will be: $_previewQty units',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _previewQty < kLowStockThreshold
+                            ? Colors.red.shade600
+                            : Colors.green.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            // Confirm button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _confirm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _purple,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        _mode == 'sell' ? 'Confirm Sale' : 'Update Stock',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ModeTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    )
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight:
+                  selected ? FontWeight.w600 : FontWeight.normal,
+              color: selected
+                  ? const Color.fromRGBO(107, 59, 225, 1)
+                  : Colors.grey.shade500,
+            ),
+          ),
+        ),
       ),
     );
   }
