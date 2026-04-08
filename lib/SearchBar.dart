@@ -44,8 +44,9 @@ class _SearChBarState extends State<SearChBar> {
               name: item.name,
               price: item.price,
               quantity: item.quantity,
+              numberOfSkus: item.numberOfSkus,
+              unitsPerSku: item.unitsPerSku,
               pid: item.pid,
-              distributor: item.distributor,
               expiredate: item.expiredate,
               category: item.category,
               imageUrl: item.imageUrl))

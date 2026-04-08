@@ -24,9 +24,10 @@ class FirestoreService {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Product(
             name: data['name'],
-            quantity: data['quantity'],
-            price: data['price'],
-            distributor: data['distributor'],
+            quantity: data['quantity'] ?? 0,
+            numberOfSkus: data['numberOfSkus'] ?? 0,
+            unitsPerSku: data['unitsPerSku'] ?? 0,
+            price: (data['price'] ?? 0).toDouble(),
             category: data['category'],
             imageUrl: data['imageUrl'],
             pid: data['pid'],
@@ -93,9 +94,10 @@ class FirestoreService {
         return Product(
           pid: data['pid'] as String,
           name: data['name'] as String,
-          quantity: data['quantity'] as int,
-          price: data['price'] as double,
-          distributor: data['distributor'] as String,
+          quantity: data['quantity'] as int? ?? 0,
+          numberOfSkus: data['numberOfSkus'] as int? ?? 0,
+          unitsPerSku: data['unitsPerSku'] as int? ?? 0,
+          price: (data['price'] as num?)?.toDouble() ?? 0.0,
           category: data['category'] as String,
           imageUrl: data['imageUrl'] as String,
           expiredate: data['expiredate'] as String,

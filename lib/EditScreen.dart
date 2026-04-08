@@ -17,9 +17,9 @@ class _EditScreenState extends State<EditScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
-  late TextEditingController _quantityController;
+  late TextEditingController _numberOfSkusController;
+  late TextEditingController _unitsPerSkuController;
   late TextEditingController _priceController;
-  late TextEditingController _distributorController;
   late TextEditingController _categoryController;
   late TextEditingController _pidController;
   late TextEditingController _expiredateController;
@@ -32,12 +32,12 @@ class _EditScreenState extends State<EditScreen> {
     super.initState();
 
     _nameController = TextEditingController(text: widget.cuProduct.name);
-    _quantityController =
-        TextEditingController(text: widget.cuProduct.quantity.toString());
+    _numberOfSkusController =
+        TextEditingController(text: widget.cuProduct.numberOfSkus.toString());
+    _unitsPerSkuController =
+        TextEditingController(text: widget.cuProduct.unitsPerSku.toString());
     _priceController =
         TextEditingController(text: widget.cuProduct.price.toString());
-    _distributorController =
-        TextEditingController(text: widget.cuProduct.distributor.toString());
     _categoryController =
         TextEditingController(text: widget.cuProduct.category.toString());
     _pidController =
@@ -93,12 +93,12 @@ class _EditScreenState extends State<EditScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _quantityController.dispose();
+    _numberOfSkusController.dispose();
+    _unitsPerSkuController.dispose();
     _priceController.dispose();
     _pidController.dispose();
     _categoryController.dispose();
     _expiredateController.dispose();
-    _distributorController.dispose();
 
     super.dispose();
   }
@@ -224,9 +224,9 @@ class _EditScreenState extends State<EditScreen> {
               ),
               const SizedBox(height: 16.0),
               TextFormField(
-                controller: _quantityController,
+                controller: _numberOfSkusController,
                 decoration: const InputDecoration(
-                    labelText: "Quantity",
+                    labelText: "Number of Boxes (SKUs)",
                     labelStyle:
                         TextStyle(color: Color.fromRGBO(107, 59, 225, 1)),
                     focusedBorder: OutlineInputBorder(
@@ -238,7 +238,28 @@ class _EditScreenState extends State<EditScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a quantity';
+                    return 'Please enter number of boxes';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _unitsPerSkuController,
+                decoration: const InputDecoration(
+                    labelText: "Units per Box",
+                    labelStyle:
+                        TextStyle(color: Color.fromRGBO(107, 59, 225, 1)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Color.fromRGBO(107, 59, 225, 1))),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Color.fromRGBO(107, 59, 225, 1)))),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter units per box';
                   }
                   return null;
                 },
@@ -265,26 +286,7 @@ class _EditScreenState extends State<EditScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _distributorController,
-                decoration: const InputDecoration(
-                    labelText: "Distributer",
-                    labelStyle:
-                        TextStyle(color: Color.fromRGBO(107, 59, 225, 1)),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Color.fromRGBO(107, 59, 225, 1))),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Color.fromRGBO(107, 59, 225, 1)))),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a distributor';
-                  }
-                  return null;
-                },
-              ),
+
               const SizedBox(height: 16.0),
               TextFormField(
                 controller: _categoryController,
@@ -322,20 +324,25 @@ class _EditScreenState extends State<EditScreen> {
                     if (_nameController.text != widget.cuProduct.name) {
                       updatedProductData['name'] = _nameController.text;
                     }
-                    if (_quantityController.text !=
-                        widget.cuProduct.quantity.toString()) {
-                      updatedProductData['quantity'] =
-                          int.parse(_quantityController.text);
+                    if (_numberOfSkusController.text !=
+                        widget.cuProduct.numberOfSkus.toString()) {
+                      updatedProductData['numberOfSkus'] =
+                          int.parse(_numberOfSkusController.text);
                     }
+                    if (_unitsPerSkuController.text !=
+                        widget.cuProduct.unitsPerSku.toString()) {
+                      updatedProductData['unitsPerSku'] =
+                          int.parse(_unitsPerSkuController.text);
+                    }
+                    
+                    int newSkus = int.parse(_numberOfSkusController.text);
+                    int newUnitsPerSku = int.parse(_unitsPerSkuController.text);
+                    updatedProductData['quantity'] = newSkus * newUnitsPerSku;
+
                     if (_priceController.text !=
                         widget.cuProduct.price.toString()) {
                       updatedProductData['price'] =
                           double.parse(_priceController.text);
-                    }
-                    if (_distributorController.text !=
-                        widget.cuProduct.distributor) {
-                      updatedProductData['distributor'] =
-                          _distributorController.text;
                     }
                     if (_categoryController.text != widget.cuProduct.category) {
                       updatedProductData['category'] = _categoryController.text;
@@ -362,9 +369,10 @@ class _EditScreenState extends State<EditScreen> {
                           widget.cuProduct.pid, updatedProductData);
                       Product updatedProduct = Product(
                         name: _nameController.text,
-                        quantity: int.parse(_quantityController.text),
+                        quantity: int.parse(_numberOfSkusController.text) * int.parse(_unitsPerSkuController.text),
+                        numberOfSkus: int.parse(_numberOfSkusController.text),
+                        unitsPerSku: int.parse(_unitsPerSkuController.text),
                         price: double.parse(_priceController.text),
-                        distributor: _distributorController.text,
                         category: _categoryController.text,
                         imageUrl: _pickedImage.path,
                         expiredate: _expiredateController.text,
@@ -386,9 +394,9 @@ class _EditScreenState extends State<EditScreen> {
                     }
 
                     _nameController.clear();
-                    _quantityController.clear();
+                    _numberOfSkusController.clear();
+                    _unitsPerSkuController.clear();
                     _priceController.clear();
-                    _distributorController.clear();
                     _categoryController.clear();
                     setState(() {
                       _pickedImage = File(''); // Clear the picked image

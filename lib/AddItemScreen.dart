@@ -22,9 +22,9 @@ class _AddProductFormState extends State<AddProductForm> {
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _quantityController = TextEditingController();
+  final _numberOfSkusController = TextEditingController();
+  final _unitsPerSkuController = TextEditingController();
   final _priceController = TextEditingController();
-  final _distributorController = TextEditingController();
   final _pidController = TextEditingController();
 
   String? _selectedCategory;
@@ -45,9 +45,9 @@ class _AddProductFormState extends State<AddProductForm> {
   @override
   void dispose() {
     _nameController.dispose();
-    _quantityController.dispose();
+    _numberOfSkusController.dispose();
+    _unitsPerSkuController.dispose();
     _priceController.dispose();
-    _distributorController.dispose();
     _pidController.dispose();
     super.dispose();
   }
@@ -86,7 +86,7 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final picked = await _imagePicker.pickImage(source: source);
+    final picked = await _imagePicker.pickImage(source: source, imageQuality: 30);
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
@@ -123,10 +123,10 @@ class _AddProductFormState extends State<AddProductForm> {
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
-  Future<void> _addProductToFirestore(Product newProduct) async {
+  // Runs entirely in the background — caller does NOT await this
+  Future<void> _addProductToFirestore(Product newProduct, File imageFile) async {
     try {
-      final String imageUrl =
-          await CloudinaryService.uploadImage(_pickedImage);
+      final String imageUrl = await CloudinaryService.uploadImage(imageFile);
 
       await _firestore
           .collection('users')
@@ -135,29 +135,32 @@ class _AddProductFormState extends State<AddProductForm> {
           .add({
         'name': newProduct.name,
         'pid': newProduct.pid,
-        'quantity': newProduct.quantity,
+        'quantity': newProduct.numberOfSkus * newProduct.unitsPerSku,
+        'numberOfSkus': newProduct.numberOfSkus,
+        'unitsPerSku': newProduct.unitsPerSku,
         'price': newProduct.price,
-        'distributor': newProduct.distributor,
         'category': newProduct.category,
         'expiredate': newProduct.expiredate,
         'imageUrl': imageUrl,
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product added successfully')),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding product: $e')),
-      );
+      // Only show error if widget is still mounted
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
     }
   }
 
   void _clearForm() {
     _nameController.clear();
-    _quantityController.clear();
+    _numberOfSkusController.clear();
+    _unitsPerSkuController.clear();
     _priceController.clear();
-    _distributorController.clear();
     _pidController.clear();
     setState(() {
       _selectedCategory = null;
@@ -270,14 +273,25 @@ class _AddProductFormState extends State<AddProductForm> {
               ),
               const SizedBox(height: 16),
 
-              // ── Quantity ──────────────────────────────────────────────────
+              // ── Number of SKUs (Boxes) ──────────────────────────────────────────────────
               TextFormField(
-                controller: _quantityController,
+                controller: _numberOfSkusController,
                 cursorColor: _purple,
                 keyboardType: TextInputType.number,
-                decoration: _fieldDecoration('Quantity'),
+                decoration: _fieldDecoration('Number of Boxes (SKUs)'),
                 validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Please enter a quantity' : null,
+                    (v == null || v.isEmpty) ? 'Please enter a number of boxes' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // ── Units per SKU ──────────────────────────────────────────────────
+              TextFormField(
+                controller: _unitsPerSkuController,
+                cursorColor: _purple,
+                keyboardType: TextInputType.number,
+                decoration: _fieldDecoration('Units per Box'),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Please enter units per box' : null,
               ),
               const SizedBox(height: 16),
 
@@ -293,13 +307,7 @@ class _AddProductFormState extends State<AddProductForm> {
               ),
               const SizedBox(height: 16),
 
-              // ── Distributor ───────────────────────────────────────────────
-              TextFormField(
-                controller: _distributorController,
-                cursorColor: _purple,
-                decoration: _fieldDecoration('Distributor (Optional)'),
-              ),
-              const SizedBox(height: 16),
+
 
               // ── Category dropdown ─────────────────────────────────────────
               StreamBuilder<List<String>>(
@@ -392,16 +400,42 @@ class _AddProductFormState extends State<AddProductForm> {
                   final newProduct = Product(
                     name: _nameController.text.trim(),
                     pid: _pidController.text.trim(),
-                    quantity: int.parse(_quantityController.text),
+                    quantity: int.parse(_numberOfSkusController.text) * int.parse(_unitsPerSkuController.text),
+                    numberOfSkus: int.parse(_numberOfSkusController.text),
+                    unitsPerSku: int.parse(_unitsPerSkuController.text),
                     price: double.parse(_priceController.text),
-                    distributor: _distributorController.text.trim(),
                     category: _selectedCategory!,
                     expiredate: _formattedExpiry,
                     imageUrl: _pickedImage.path,
                   );
 
-                  await _addProductToFirestore(newProduct);
+                  // Capture image file reference before clearing form
+                  final imageFile = _pickedImage;
+
+                  // Give instant feedback and clear form immediately
                   _clearForm();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Uploading product in background...'),
+                        ],
+                      ),
+                      duration: Duration(seconds: 4),
+                    ),
+                  );
+
+                  // Upload + save without blocking the UI
+                  _addProductToFirestore(newProduct, imageFile);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _purple,
