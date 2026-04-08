@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,16 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _HomeBody extends StatelessWidget {
+class _HomeBody extends StatefulWidget {
   const _HomeBody();
 
+  @override
+  State<_HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends State<_HomeBody> {
   static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +75,15 @@ class _HomeBody extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: SearChBar(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SearChBar(
+                    onQueryChanged: (query) {
+                      setState(() {
+                        _searchQuery = query;
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -99,6 +112,71 @@ class _HomeBody extends StatelessWidget {
             }
 
             final docs = snapshot.data?.docs ?? [];
+
+            // If searching, render a flat list of matching products immediately under the header
+            if (_searchQuery.isNotEmpty) {
+              final queryLower = _searchQuery.toLowerCase();
+              final searchResults = docs.where((doc) {
+                final matchName = ((doc.data() as Map<String, dynamic>)['name'] as String?)
+                        ?.toLowerCase()
+                        .contains(queryLower) ?? false;
+                return matchName;
+              }).map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return {...data, '__docId': doc.id};
+              }).toList();
+
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: header),
+                  if (searchResults.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Center(
+                            child: Text('No results for "$_searchQuery"',
+                                style: const TextStyle(color: Colors.grey))),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final p = searchResults[index];
+                            final qty = p['quantity'] as int? ?? 0;
+                            final docId = p['__docId'] as String;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ],
+                                ),
+                                child: _ProductTile(
+                                  product: p,
+                                  qty: qty,
+                                  docId: docId,
+                                ),
+                              ),
+                            );
+                          },
+                          childCount: searchResults.length,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }
 
             final Map<String, List<Map<String, dynamic>>> grouped = {};
             for (final doc in docs) {
@@ -506,12 +584,14 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
   }
 }
 
-// ── Product tile with debounced SKU input ────────────────────────────────────
+// ── Product tile (Static layout opening Overlay) ──────────────────────────────
 
-class _ProductTile extends StatefulWidget {
+class _ProductTile extends StatelessWidget {
   final Map<String, dynamic> product;
   final int qty;
   final String docId;
+
+  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
 
   const _ProductTile({
     required this.product,
@@ -520,10 +600,96 @@ class _ProductTile extends StatefulWidget {
   });
 
   @override
-  State<_ProductTile> createState() => _ProductTileState();
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        showGeneralDialog(
+          context: context,
+          barrierDismissible: true,
+          barrierLabel: 'Dismiss',
+          barrierColor: Colors.black.withOpacity(0.1),
+          transitionDuration: const Duration(milliseconds: 200),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              child: _ProductDetailsOverlay(
+                product: product,
+                docId: docId,
+              ),
+            );
+          },
+        );
+      },
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            product['imageUrl'] as String? ?? '',
+            width: 42,
+            height: 42,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: _purple.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.image_not_supported,
+                  size: 18, color: Colors.grey),
+            ),
+          ),
+        ),
+        title: Text(
+          product['name'] as String? ?? '-',
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          'ID: ${product['pid'] ?? '-'}  ·  Exp: ${product['expiredate'] ?? '-'}',
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: qty < kLowStockThreshold
+                ? Colors.red.withOpacity(0.1)
+                : Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$qty units',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: qty < kLowStockThreshold
+                  ? Colors.red.shade600
+                  : Colors.green.shade700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ProductTileState extends State<_ProductTile> {
+// ── Product Details Overlay ──────────────────────────────────────────────────
+
+class _ProductDetailsOverlay extends StatefulWidget {
+  final Map<String, dynamic> product;
+  final String docId;
+
+  const _ProductDetailsOverlay({
+    required this.product,
+    required this.docId,
+  });
+
+  @override
+  State<_ProductDetailsOverlay> createState() => _ProductDetailsOverlayState();
+}
+
+class _ProductDetailsOverlayState extends State<_ProductDetailsOverlay> {
   static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
 
   late TextEditingController _skuController;
@@ -539,22 +705,10 @@ class _ProductTileState extends State<_ProductTile> {
   }
 
   @override
-  void didUpdateWidget(_ProductTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Keep text in sync if Firestore pushes an update from another source
-    final incoming = widget.product['numberOfSkus'] as int? ?? 0;
-    final old = oldWidget.product['numberOfSkus'] as int? ?? 0;
-    if (incoming != old && !_saving) {
-      _skuController.text = '$incoming';
-    }
-  }
-
-  @override
   void dispose() {
     if (_debounce != null && _debounce!.isActive) {
       _debounce!.cancel();
       if (_pendingSkus != null) {
-        // Run immediately without await since we are disposing
         _writeToFirebase(_pendingSkus!);
       }
     }
@@ -586,7 +740,7 @@ class _ProductTileState extends State<_ProductTile> {
         'quantity': newSkus * unitsPerSku,
       });
     } catch (e) {
-      // Ignored for UI
+      // Ignore
     }
     _pendingSkus = null;
     if (mounted) setState(() => _saving = false);
@@ -612,7 +766,7 @@ class _ProductTileState extends State<_ProductTile> {
     _scheduleWrite(parsed);
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
+  Future<void> _deleteProduct() async {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -634,7 +788,6 @@ class _ProductTileState extends State<_ProductTile> {
     );
 
     if (confirm == true) {
-      // User requested delete intentionally, discard any pending change
       _debounce?.cancel();
       _pendingSkus = null;
       final user = FirebaseAuth.instance.currentUser;
@@ -646,7 +799,8 @@ class _ProductTileState extends State<_ProductTile> {
             .doc(widget.docId)
             .delete();
 
-        if (context.mounted) {
+        if (mounted) {
+          Navigator.pop(context); // Close the overlay
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${widget.product['name']} deleted')),
           );
@@ -657,114 +811,219 @@ class _ProductTileState extends State<_ProductTile> {
 
   @override
   Widget build(BuildContext context) {
-    final units = widget.qty;
+    final parsedSkus = int.tryParse(_skuController.text) ?? 0;
+    final unitsPerSku = widget.product['unitsPerSku'] as int? ?? 0;
+    final calculatedUnits = parsedSkus * unitsPerSku;
 
-    return ListTile(
-      dense: true,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          widget.product['imageUrl'] as String? ?? '',
-          width: 42,
-          height: 42,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: _purple.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.image_not_supported,
-                size: 18, color: Colors.grey),
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      widget.product['imageUrl'] as String? ?? '',
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.grey.shade100,
+                        child: const Icon(Icons.inventory_2_outlined,
+                            size: 24, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.product['name'] as String? ?? 'Product Name',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${widget.product['category'] ?? '-'}  ·  Price: \$${widget.product['price'] ?? 0}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Divider(height: 1),
+              const SizedBox(height: 24),
+
+              // Stock Adjustments
+              const Text(
+                'Adjust SDKs (Boxes)',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _AdjustButton(
+                    icon: Icons.remove,
+                    color: Colors.red.shade400,
+                    bgColor: Colors.red.shade50,
+                    onTap: _onMinusTap,
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 70,
+                        height: 40,
+                        child: TextField(
+                          controller: _skuController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          onChanged: _onTextChanged,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 8),
+                            filled: true,
+                            fillColor: _saving
+                                ? Colors.orange.shade50
+                                : Colors.grey.shade100,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _saving ? 'saving...' : '$calculatedUnits total units',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _saving
+                              ? Colors.orange.shade600
+                              : Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  _AdjustButton(
+                    icon: Icons.add,
+                    color: Colors.green.shade500,
+                    bgColor: Colors.green.shade50,
+                    onTap: _onPlusTap,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+              
+              // Actions
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _deleteProduct,
+                    icon: Icon(Icons.delete_outline,
+                        size: 20, color: Colors.grey.shade400),
+                    label: Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _purple,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text('Done',
+                        style: TextStyle(color: Colors.white, fontSize: 15)),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
-      title: Text(
-        widget.product['name'] as String? ?? '-',
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        'ID: ${widget.product['pid'] ?? '-'}  ·  Exp: ${widget.product['expiredate'] ?? '-'}',
-        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ─ Minus ─
-          IconButton(
-            icon: const Icon(Icons.remove_circle, color: Colors.red),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            onPressed: _onMinusTap,
-          ),
-          const SizedBox(width: 4),
+    );
+  }
+}
 
-          // ─ Editable SKU count ─
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 44,
-                height: 28,
-                child: TextField(
-                  controller: _skuController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  onChanged: _onTextChanged,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.bold),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                    filled: true,
-                    fillColor: _saving
-                        ? Colors.orange.withValues(alpha: 0.1)
-                        : _purple.withValues(alpha: 0.06),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 1),
-              _saving
-                  ? Text('saving...',
-                      style: TextStyle(
-                          fontSize: 8, color: Colors.orange.shade600))
-                  : Text('$units units',
-                      style: TextStyle(
-                          fontSize: 9, color: Colors.grey.shade500)),
-            ],
-          ),
+class _AdjustButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  final VoidCallback onTap;
 
-          const SizedBox(width: 4),
-          // ─ Plus ─
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.green),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            onPressed: _onPlusTap,
-          ),
-          const SizedBox(width: 4),
+  const _AdjustButton({
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+    required this.onTap,
+  });
 
-          // ─ Delete ─
-          GestureDetector(
-            onTap: () => _confirmDelete(context),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.delete_outline,
-                  size: 18, color: Colors.red),
-            ),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Icon(icon, size: 24, color: color),
       ),
     );
   }
