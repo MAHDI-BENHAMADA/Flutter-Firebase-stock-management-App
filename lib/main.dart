@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -64,10 +65,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Add a delay and navigate to the register page
-    Future.delayed(const Duration(seconds: 10), () {
+    _checkAuthState();
+  }
+
+  Future<void> _checkAuthState() async {
+    // Brief delay to show splash screen, then navigate based on auth state
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      GoRouter.of(context).go('/home');
+    } else {
       GoRouter.of(context).go('/login');
-    });
+    }
   }
 
   @override
