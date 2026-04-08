@@ -19,7 +19,6 @@ class _RegisterViewState extends State<RegisterView> {
   TextEditingController _password = TextEditingController();
   final _nameController = TextEditingController();
   final _unameController = TextEditingController();
-  final _phoneController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -161,35 +160,7 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    TextField(
-                      cursorColor: const Color.fromRGBO(107, 10, 225, 1),
-                      controller: _phoneController,
-                      enableSuggestions: false,
-                      autocorrect: false,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(
-                          Icons.phone_android_outlined,
-                          color: Colors.white,
-                        ),
-                        filled: true,
-                        fillColor: Color.fromRGBO(252, 252, 252, .7),
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 2,
-                              color: Colors.white,
-                            ),
-                            borderRadius: BorderRadius.all(Radius.circular(5))),
-                        hintText: 'Enter your Phone number',
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white)),
-                        hintStyle: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+
                     const SizedBox(
                       height: 12,
                     ),
@@ -275,7 +246,7 @@ class _RegisterViewState extends State<RegisterView> {
                           myUser newUser = myUser(
                             name: _nameController.text,
                             username: _unameController.text,
-                            phone: _phoneController.text,
+                            phone: '',
                           );
                           try {
                             await FirebaseAuth.instance
@@ -292,7 +263,6 @@ class _RegisterViewState extends State<RegisterView> {
                             _nameController.clear();
                             _password.clear();
                             _unameController.clear();
-                            _phoneController.clear();
 
                             if (user != null) {
                               showDialog(
