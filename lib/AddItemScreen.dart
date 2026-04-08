@@ -123,10 +123,10 @@ class _AddProductFormState extends State<AddProductForm> {
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
-  Future<void> _addProductToFirestore(Product newProduct) async {
+  // Runs entirely in the background — caller does NOT await this
+  Future<void> _addProductToFirestore(Product newProduct, File imageFile) async {
     try {
-      final String imageUrl =
-          await CloudinaryService.uploadImage(_pickedImage);
+      final String imageUrl = await CloudinaryService.uploadImage(imageFile);
 
       await _firestore
           .collection('users')
@@ -143,14 +143,16 @@ class _AddProductFormState extends State<AddProductForm> {
         'expiredate': newProduct.expiredate,
         'imageUrl': imageUrl,
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product added successfully')),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding product: $e')),
-      );
+      // Only show error if widget is still mounted
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
     }
   }
 
@@ -407,8 +409,33 @@ class _AddProductFormState extends State<AddProductForm> {
                     imageUrl: _pickedImage.path,
                   );
 
-                  await _addProductToFirestore(newProduct);
+                  // Capture image file reference before clearing form
+                  final imageFile = _pickedImage;
+
+                  // Give instant feedback and clear form immediately
                   _clearForm();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Uploading product in background...'),
+                        ],
+                      ),
+                      duration: Duration(seconds: 4),
+                    ),
+                  );
+
+                  // Upload + save without blocking the UI
+                  _addProductToFirestore(newProduct, imageFile);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _purple,

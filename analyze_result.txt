@@ -1,0 +1,118 @@
+Analyzing invent-mang...
+
+warning - lib\CategoryOverviewScreen.dart:5:8 - Unused import: 'package:wa_inventory/productDetail.dart'. Try removing the import directive. - unused_import
+warning - lib\NotificationScreen.dart:78:8 - The declaration '_clearNotification' isn't referenced. Try removing the declaration of '_clearNotification'. - unused_element
+warning - lib\ReportPage.dart:6:7 - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ReportPage.user - must_be_immutable
+warning - lib\Services\database.dart:14:16 - The declaration '_CheckUser' isn't referenced. Try removing the declaration of '_CheckUser'. - unused_element
+   info - lib\AddItemScreen.dart:1:1 - The file name 'AddItemScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\AddItemScreen.dart:17:3 - Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private. - library_private_types_in_public_api
+   info - lib\AddItemScreen.dart:147:28 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\AddItemScreen.dart:151:28 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\AddItemScreen.dart:181:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\AddItemScreen.dart:324:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\AddItemScreen.dart:356:21 - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\AllText.dart:1:1 - The file name 'AllText.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\AllText.dart:7:9 - Parameter 'key' could be a super parameter. Trying converting 'key' to a super parameter. - use_super_parameters
+   info - lib\BottomNavigationBar.dart:1:1 - The file name 'BottomNavigationBar.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\BottomNavigationBar.dart:11:3 - Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private. - library_private_types_in_public_api
+   info - lib\CategoriesManagementScreen.dart:1:1 - The file name 'CategoriesManagementScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\CategoriesManagementScreen.dart:65:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoriesManagementScreen.dart:165:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoriesManagementScreen.dart:214:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoriesManagementScreen.dart:217:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoriesManagementScreen.dart:225:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:1:1 - The file name 'CategoryOverviewScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\CategoryOverviewScreen.dart:93:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:114:14 - The parameter name 'sum' matches a visible type name. Try adding a name for the parameter or changing the parameter name to not match an existing type. - avoid_types_as_parameter_names
+   info - lib\CategoryOverviewScreen.dart:181:20 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\CategoryOverviewScreen.dart:182:11 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\CategoryOverviewScreen.dart:286:25 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:292:27 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:293:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:315:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:369:46 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\CategoryOverviewScreen.dart:446:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\DeleteScreen.dart:1:1 - The file name 'DeleteScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\DeleteScreen.dart:13:30 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\DeleteScreen.dart:25:38 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\DeleteScreen.dart:36:13 - Unnecessary instance of 'Container'. Try removing the 'Container' (but not its children) from the widget tree. - avoid_unnecessary_containers
+   info - lib\DeleteScreen.dart:41:36 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\DeleteScreen.dart:46:13 - Unnecessary instance of 'Container'. Try removing the 'Container' (but not its children) from the widget tree. - avoid_unnecessary_containers
+   info - lib\DeleteScreen.dart:52:32 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\DeleteScreen.dart:54:13 - Unnecessary instance of 'Container'. Try removing the 'Container' (but not its children) from the widget tree. - avoid_unnecessary_containers
+   info - lib\DeleteScreen.dart:60:34 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\DeleteScreen.dart:71:40 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\DeleteScreen.dart:87:40 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\EditScreen.dart:1:1 - The file name 'EditScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\EditScreen.dart:13:3 - Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private. - library_private_types_in_public_api
+   info - lib\EditScreen.dart:381:44 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\EditScreen.dart:386:37 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\EditScreen.dart:388:23 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\EditScreen.dart:389:44 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\HomeScreen.dart:1:1 - The file name 'HomeScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\HomeScreen.dart:225:20 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\HomeScreen.dart:226:11 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\HomeScreen.dart:348:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\HomeScreen.dart:376:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\ImageTextCard.dart:1:1 - The file name 'ImageTextCard.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\ItemsCard.dart:1:1 - The file name 'ItemsCard.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\ItemsList.dart:1:1 - The file name 'ItemsList.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\ItemsList.dart:25:9 - Parameter 'key' could be a super parameter. Trying converting 'key' to a super parameter. - use_super_parameters
+   info - lib\ItemsList.dart:43:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\ItemsList.dart:46:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\ItemsList.dart:51:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\LoginScreen.dart:1:1 - The file name 'LoginScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\LoginScreen.dart:12:9 - Parameter 'key' could be a super parameter. Trying converting 'key' to a super parameter. - use_super_parameters
+   info - lib\LoginScreen.dart:191:31 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\NotificationScreen.dart:1:1 - The file name 'NotificationScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\NotificationScreen.dart:45:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\NotificationScreen.dart:110:56 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\NotificationScreen.dart:119:56 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\NotificationScreen.dart:129:56 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\NotificationScreen.dart:138:56 - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF'). - use_full_hex_values_for_flutter_colors
+   info - lib\NotificationScreen.dart:199:40 - 'MaterialStatePropertyAll' is deprecated and shouldn't be used. Use WidgetStatePropertyAll instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\PurchaseDemandScreen.dart:1:1 - The file name 'PurchaseDemandScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\PurchaseDemandScreen.dart:83:32 - Statements in a for should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - lib\PurchaseDemandScreen.dart:187:32 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\PurchaseDemandScreen.dart:197:32 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\PurchaseDemandScreen.dart:260:27 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\PurchaseDemandScreen.dart:269:21 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\PurchaseDemandScreen.dart:768:13 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\PurchaseDemandScreen.dart:770:22 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\PurchaseDemandScreen.dart:771:27 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\ReportPage.dart:1:1 - The file name 'ReportPage.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\SearchBar.dart:1:1 - The file name 'SearchBar.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\SearchBar.dart:26:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\SearchBar.dart:33:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\SearchBar.dart:54:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\SearchBar.dart:73:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\Services\database.dart:14:16 - The variable name '_CheckUser' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style. - non_constant_identifier_names
+   info - lib\Services\database.dart:38:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\Services\database.dart:56:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\Services\database.dart:71:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\Services\database.dart:73:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\Services\database.dart:76:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\Services\database.dart:83:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\forgetpassword.dart:5:9 - Parameter 'key' could be a super parameter. Trying converting 'key' to a super parameter. - use_super_parameters
+   info - lib\main.dart:61:3 - Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private. - library_private_types_in_public_api
+   info - lib\main.dart:87:12 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\main.dart:88:13 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\main.dart:89:16 - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation. - prefer_const_constructors
+   info - lib\main.dart:92:21 - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal. - prefer_const_literals_to_create_immutables
+   info - lib\models\usermodel.dart:1:7 - The type name 'myUser' isn't an UpperCamelCase identifier. Try changing the name to follow the UpperCamelCase style. - camel_case_types
+   info - lib\models\usermodel.dart:6:16 - The variable name 'Role' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style. - non_constant_identifier_names
+   info - lib\models\usermodel.dart:14:12 - The variable name 'Role' isn't a lowerCamelCase identifier. Try changing the name to follow the lowerCamelCase style. - non_constant_identifier_names
+   info - lib\productDetail.dart:1:1 - The file name 'productDetail.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\profileScreen.dart:1:1 - The file name 'profileScreen.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\profileScreen.dart:197:41 - The type of the right operand ('String') isn't a subtype or a supertype of the left operand ('TextEditingController'). Try changing one or both of the operands. - unrelated_type_equality_checks
+   info - lib\showDialog.dart:1:1 - The file name 'showDialog.dart' isn't a lower_case_with_underscores identifier. Try changing the name to follow the lower_case_with_underscores style. - file_names
+   info - lib\stockout.dart:12:3 - Invalid use of a private type in a public API. Try making the private type public, or making the API that uses the private type also be private. - library_private_types_in_public_api
+   info - lib\stockout.dart:38:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\stockout.dart:50:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - lib\stockout.dart:94:7 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - lib\stockout.dart:191:21 - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\stockout.dart:192:21 - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\stockout.dart:200:21 - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\stockout.dart:201:21 - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+
+114 issues found.

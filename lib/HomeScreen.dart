@@ -563,26 +563,59 @@ class _ProductTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Qty badge
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: qty < kLowStockThreshold
-                  ? Colors.red.withValues(alpha: 0.1)
-                  : Colors.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '$qty units',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: qty < kLowStockThreshold
-                    ? Colors.red.shade600
-                    : Colors.green.shade700,
-              ),
-            ),
+          // Minus button
+          IconButton(
+            icon: const Icon(Icons.remove_circle, color: Colors.red),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              final numberOfSkus = product['numberOfSkus'] as int? ?? 0;
+              final unitsPerSku = product['unitsPerSku'] as int? ?? 0;
+              int newSkus = numberOfSkus - 1;
+              if (newSkus < 0) return;
+              
+              FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('products')
+                  .doc(docId)
+                  .update({
+                'numberOfSkus': newSkus,
+                'quantity': newSkus * unitsPerSku,
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('${product['numberOfSkus'] ?? 0} Boxes',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              Text('$qty units',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
+            ],
+          ),
+          const SizedBox(width: 8),
+          // Plus button
+          IconButton(
+            icon: const Icon(Icons.add_circle, color: Colors.green),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              final numberOfSkus = product['numberOfSkus'] as int? ?? 0;
+              final unitsPerSku = product['unitsPerSku'] as int? ?? 0;
+              int newSkus = numberOfSkus + 1;
+              
+              FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('products')
+                  .doc(docId)
+                  .update({
+                'numberOfSkus': newSkus,
+                'quantity': newSkus * unitsPerSku,
+              });
+            },
           ),
           const SizedBox(width: 6),
           // Delete button
@@ -596,20 +629,6 @@ class _ProductTile extends StatelessWidget {
               ),
               child: const Icon(Icons.delete_outline,
                   size: 18, color: Colors.red),
-            ),
-          ),
-          const SizedBox(width: 6),
-          // Sell button
-          GestureDetector(
-            onTap: () => _showSellSheet(context),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: _purple.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.remove_shopping_cart_outlined,
-                  size: 18, color: _purple),
             ),
           ),
         ],

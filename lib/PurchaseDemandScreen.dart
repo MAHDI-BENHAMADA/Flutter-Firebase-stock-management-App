@@ -57,7 +57,6 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
         .collection('users')
         .doc(user.uid)
         .collection('products')
-        .where('numberOfSkus', isEqualTo: 0)
         .get();
 
     if (!mounted) return;
@@ -65,14 +64,17 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
     setState(() {
       for (var doc in snap.docs) {
         final data = doc.data();
-        // Avoid adding duplicates if already present
-        if (!_items.any((i) => i.docId == doc.id)) {
-          _items.add(_DemandItem(
-            docId: doc.id,
-            name: (data['name'] as String?)?.trim() ?? 'Unnamed',
-            category: (data['category'] as String?)?.trim() ?? 'Uncategorized',
-            currentStock: data['numberOfSkus'] as int? ?? 0,
-          ));
+        final skus = data['numberOfSkus'] as int?;
+        if (skus == 0 || skus == null) {
+          // Avoid adding duplicates if already present
+          if (!_items.any((i) => i.docId == doc.id)) {
+            _items.add(_DemandItem(
+              docId: doc.id,
+              name: (data['name'] as String?)?.trim() ?? 'Unnamed',
+              category: (data['category'] as String?)?.trim() ?? 'Uncategorized',
+              currentStock: skus ?? 0,
+            ));
+          }
         }
       }
     });
