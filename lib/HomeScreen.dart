@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -153,7 +154,14 @@ class _HomeBody extends StatelessWidget {
               return qty < kLowStockThreshold;
             }).length;
 
-            return CustomScrollView(
+            return RefreshIndicator(
+              color: _purple,
+              onRefresh: () async {
+                // StreamBuilder handles updates automatically;
+                // pull-to-refresh just gives visual confirmation
+                await Future.delayed(const Duration(milliseconds: 400));
+              },
+              child: CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(child: header),
                 SliverToBoxAdapter(
@@ -188,7 +196,8 @@ class _HomeBody extends StatelessWidget {
                   ),
                 ),
               ],
-            );
+            ),
+          );
           },
         ),
       ),
@@ -333,7 +342,6 @@ class _CategoryGridTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => CategoryProductsScreen(
               categoryName: categoryName,
-              products: products,
             ),
           ),
         );
@@ -419,32 +427,69 @@ class _CategoryGridTile extends StatelessWidget {
   }
 }
 
-// ── Category Products Screen ───────────────────────────────────────────────────
+// ── Category Products Screen (live stream) ────────────────────────────────────
 
-class CategoryProductsScreen extends StatelessWidget {
+class CategoryProductsScreen extends StatefulWidget {
   final String categoryName;
-  final List<Map<String, dynamic>> products;
 
   const CategoryProductsScreen({
     super.key,
     required this.categoryName,
-    required this.products,
   });
 
   @override
+  State<CategoryProductsScreen> createState() => _CategoryProductsScreenState();
+}
+
+class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
+  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
+
+  @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(categoryName),
-        backgroundColor: const Color.fromRGBO(107, 59, 225, 1),
+        title: Text(widget.categoryName),
+        backgroundColor: _purple,
         foregroundColor: Colors.white,
       ),
-      body: products.isEmpty
-          ? const Center(child: Text("No items in this category."))
-          : ListView.separated(
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .collection('products')
+            .where('category', isEqualTo: widget.categoryName)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: _purple));
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final docs = snapshot.data?.docs ?? [];
+
+          if (docs.isEmpty) {
+            return const Center(child: Text('No items in this category.'));
+          }
+
+          final products = docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return {...data, '__docId': doc.id};
+          }).toList();
+
+          return RefreshIndicator(
+            color: _purple,
+            onRefresh: () async {
+              await Future.delayed(const Duration(milliseconds: 300));
+            },
+            child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               itemCount: products.length,
-              separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade200),
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: Colors.grey.shade200),
               itemBuilder: (context, i) {
                 final p = products[i];
                 final qty = p['quantity'] as int? ?? 0;
@@ -456,18 +501,18 @@ class CategoryProductsScreen extends StatelessWidget {
                 );
               },
             ),
+          );
+        },
+      ),
     );
   }
 }
 
-// ── Product tile with sell action ─────────────────────────────────────────────
 
-class _ProductTile extends StatelessWidget {
+class _ProductTile extends StatefulWidget {
   final Map<String, dynamic> product;
   final int qty;
   final String docId;
-
-  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
 
   const _ProductTile({
     required this.product,
@@ -475,17 +520,82 @@ class _ProductTile extends StatelessWidget {
     required this.docId,
   });
 
-  void _showSellSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _SellStockSheet(
-        docId: docId,
-        productName: product['name'] as String? ?? 'Product',
-        currentQty: qty,
-      ),
-    );
+  @override
+  State<_ProductTile> createState() => _ProductTileState();
+}
+
+class _ProductTileState extends State<_ProductTile> {
+  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
+
+  late TextEditingController _skuController;
+  Timer? _debounce;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentSkus = widget.product['numberOfSkus'] as int? ?? 0;
+    _skuController = TextEditingController(text: '$currentSkus');
+  }
+
+  @override
+  void didUpdateWidget(_ProductTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Keep text in sync if Firestore pushes an update from another source
+    final incoming = widget.product['numberOfSkus'] as int? ?? 0;
+    final old = oldWidget.product['numberOfSkus'] as int? ?? 0;
+    if (incoming != old && !_saving) {
+      _skuController.text = '$incoming';
+    }
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _skuController.dispose();
+    super.dispose();
+  }
+
+  void _scheduleWrite(int newSkus) {
+    _debounce?.cancel();
+    setState(() => _saving = true);
+    _debounce = Timer(const Duration(seconds: 3), () {
+      _writeToFirebase(newSkus);
+    });
+  }
+
+  Future<void> _writeToFirebase(int newSkus) async {
+    final unitsPerSku = widget.product['unitsPerSku'] as int? ?? 0;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('products')
+        .doc(widget.docId)
+        .update({
+      'numberOfSkus': newSkus,
+      'quantity': newSkus * unitsPerSku,
+    });
+    if (mounted) setState(() => _saving = false);
+  }
+
+  void _onMinusTap() {
+    final current = int.tryParse(_skuController.text) ?? 0;
+    final newVal = (current - 1).clamp(0, 99999);
+    _skuController.text = '$newVal';
+    _scheduleWrite(newVal);
+  }
+
+  void _onPlusTap() {
+    final current = int.tryParse(_skuController.text) ?? 0;
+    final newVal = current + 1;
+    _skuController.text = '$newVal';
+    _scheduleWrite(newVal);
+  }
+
+  void _onTextChanged(String value) {
+    final parsed = int.tryParse(value);
+    if (parsed == null || parsed < 0) return;
+    _scheduleWrite(parsed);
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -493,7 +603,8 @@ class _ProductTile extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete ${product['name']}? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete ${widget.product['name']}? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -509,19 +620,20 @@ class _ProductTile extends StatelessWidget {
     );
 
     if (confirm == true) {
+      _debounce?.cancel(); // Cancel any pending write before deleting
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .collection('products')
-            .doc(docId)
+            .doc(widget.docId)
             .delete();
-            
+
         if (context.mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text('${product['name']} deleted')),
-           );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${widget.product['name']} deleted')),
+          );
         }
       }
     }
@@ -529,6 +641,8 @@ class _ProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final units = widget.qty;
+
     return ListTile(
       dense: true,
       contentPadding:
@@ -536,7 +650,7 @@ class _ProductTile extends StatelessWidget {
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.network(
-          product['imageUrl'] as String? ?? '',
+          widget.product['imageUrl'] as String? ?? '',
           width: 42,
           height: 42,
           fit: BoxFit.cover,
@@ -553,72 +667,75 @@ class _ProductTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        product['name'] as String? ?? '-',
+        widget.product['name'] as String? ?? '-',
         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
-        'ID: ${product['pid'] ?? '-'}  ·  Exp: ${product['expiredate'] ?? '-'}',
+        'ID: ${widget.product['pid'] ?? '-'}  ·  Exp: ${widget.product['expiredate'] ?? '-'}',
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Minus button
+          // ─ Minus ─
           IconButton(
             icon: const Icon(Icons.remove_circle, color: Colors.red),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            onPressed: () {
-              final numberOfSkus = product['numberOfSkus'] as int? ?? 0;
-              final unitsPerSku = product['unitsPerSku'] as int? ?? 0;
-              int newSkus = numberOfSkus - 1;
-              if (newSkus < 0) return;
-              
-              FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .collection('products')
-                  .doc(docId)
-                  .update({
-                'numberOfSkus': newSkus,
-                'quantity': newSkus * unitsPerSku,
-              });
-            },
+            onPressed: _onMinusTap,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
+
+          // ─ Editable SKU count ─
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('${product['numberOfSkus'] ?? 0} Boxes',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              Text('$qty units',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
+              SizedBox(
+                width: 44,
+                height: 28,
+                child: TextField(
+                  controller: _skuController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  onChanged: _onTextChanged,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                    filled: true,
+                    fillColor: _saving
+                        ? Colors.orange.withValues(alpha: 0.1)
+                        : _purple.withValues(alpha: 0.06),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 1),
+              _saving
+                  ? Text('saving...',
+                      style: TextStyle(
+                          fontSize: 8, color: Colors.orange.shade600))
+                  : Text('$units units',
+                      style: TextStyle(
+                          fontSize: 9, color: Colors.grey.shade500)),
             ],
           ),
-          const SizedBox(width: 8),
-          // Plus button
+
+          const SizedBox(width: 4),
+          // ─ Plus ─
           IconButton(
             icon: const Icon(Icons.add_circle, color: Colors.green),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            onPressed: () {
-              final numberOfSkus = product['numberOfSkus'] as int? ?? 0;
-              final unitsPerSku = product['unitsPerSku'] as int? ?? 0;
-              int newSkus = numberOfSkus + 1;
-              
-              FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .collection('products')
-                  .doc(docId)
-                  .update({
-                'numberOfSkus': newSkus,
-                'quantity': newSkus * unitsPerSku,
-              });
-            },
+            onPressed: _onPlusTap,
           ),
-          const SizedBox(width: 6),
-          // Delete button
+          const SizedBox(width: 4),
+
+          // ─ Delete ─
           GestureDetector(
             onTap: () => _confirmDelete(context),
             child: Container(
