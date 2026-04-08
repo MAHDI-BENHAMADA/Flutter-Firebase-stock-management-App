@@ -358,7 +358,6 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
             ),
         ],
       ),
-      ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: _purple))
         : RefreshIndicator(
