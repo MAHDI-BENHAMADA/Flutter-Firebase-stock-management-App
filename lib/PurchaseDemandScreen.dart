@@ -103,42 +103,7 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchZeroSkuItems();
-  }
 
-  Future<void> _fetchZeroSkuItems() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    
-    final snap = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('products')
-        .get();
-
-    if (!mounted) return;
-
-    setState(() {
-      for (var doc in snap.docs) {
-        final data = doc.data();
-        final skus = data['numberOfSkus'] as int?;
-        if (skus == 0 || skus == null) {
-          // Avoid adding duplicates if already present
-          if (!_items.any((i) => i.docId == doc.id)) {
-            _items.add(_DemandItem(
-              docId: doc.id,
-              name: (data['name'] as String?)?.trim() ?? 'Unnamed',
-              category: (data['category'] as String?)?.trim() ?? 'Uncategorized',
-              currentStock: skus ?? 0,
-            ));
-          }
-        }
-      }
-    });
-  }
 
   @override
   void dispose() {

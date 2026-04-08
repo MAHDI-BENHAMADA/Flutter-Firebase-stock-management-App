@@ -32,86 +32,78 @@ class _HomeBodyState extends State<_HomeBody> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
+    final header = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 12, 0),
+          child: Row(
+            children: [
+              const Text(
+                'Inventory',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1A2E),
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const NotificationPage()),
+                ),
+                icon: const Icon(
+                  Icons.notifications_none_outlined,
+                  size: 28,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SearChBar(
+            onQueryChanged: (query) {
+              setState(() {
+                _searchQuery = query;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F6FC),
       body: SafeArea(
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .doc(user!.uid)
-              .collection('products')
-              .snapshots(),
-          builder: (context, snapshot) {
-            final header = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 0),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'Inventory',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A2E),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const NotificationPage()),
-                        ),
-                        icon: const Icon(
-                          Icons.notifications_none_outlined,
-                          size: 28,
-                          color: Color(0xFF1A1A2E),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: SearChBar(
-                    onQueryChanged: (query) {
-                      setState(() {
-                        _searchQuery = query;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            );
+        child: Column(
+          children: [
+            header,
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user!.uid)
+                    .collection('products')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(color: _purple));
+                  }
 
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Column(
-                children: [
-                  header,
-                  const Expanded(
-                      child: Center(
-                          child: CircularProgressIndicator(color: _purple))),
-                ],
-              );
-            }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-            if (snapshot.hasError) {
-              return Column(
-                children: [
-                  header,
-                  Expanded(
-                      child:
-                          Center(child: Text('Error: ${snapshot.error}'))),
-                ],
-              );
-            }
+                  final docs = snapshot.data?.docs ?? [];
 
-            final docs = snapshot.data?.docs ?? [];
 
             // If searching, render a flat list of matching products immediately under the header
             if (_searchQuery.isNotEmpty) {
@@ -128,7 +120,6 @@ class _HomeBodyState extends State<_HomeBody> {
 
               return CustomScrollView(
                 slivers: [
-                  SliverToBoxAdapter(child: header),
                   if (searchResults.isEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -189,31 +180,21 @@ class _HomeBodyState extends State<_HomeBody> {
             }
 
             if (grouped.isEmpty) {
-              return Column(
-                children: [
-                  header,
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.inventory_2_outlined,
-                              size: 80,
-                              color: _purple.withValues(alpha: 0.2)),
-                          const SizedBox(height: 16),
-                          const Text('No products yet',
-                              style: TextStyle(
-                                  fontSize: 18, color: Colors.grey)),
-                          const SizedBox(height: 6),
-                          Text('Add products from the Add Item tab',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade400)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.inventory_2_outlined,
+                        size: 80, color: _purple.withOpacity(0.2)),
+                    const SizedBox(height: 16),
+                    const Text('No products yet',
+                        style: TextStyle(fontSize: 18, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    Text('Add products from the Add Item tab',
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey.shade400)),
+                  ],
+                ),
               );
             }
 
@@ -239,7 +220,6 @@ class _HomeBodyState extends State<_HomeBody> {
               },
               child: CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(child: header),
                 SliverToBoxAdapter(
                   child: _SummaryHeader(
                     totalSkus: totalSkus,
@@ -277,8 +257,11 @@ class _HomeBodyState extends State<_HomeBody> {
           },
         ),
       ),
-    );
-  }
+     ],
+    ),
+   ),
+  );
+ }
 }
 
 // ── Summary header ─────────────────────────────────────────────────────────────
