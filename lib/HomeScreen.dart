@@ -521,6 +521,45 @@ class _ProductTile extends StatelessWidget {
     );
   }
 
+  Future<void> _confirmDelete(BuildContext context) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text('Are you sure you want to delete ${product['name']}? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('products')
+            .doc(docId)
+            .delete();
+            
+        if (context.mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('${product['name']} deleted')),
+           );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -576,6 +615,20 @@ class _ProductTile extends StatelessWidget {
                     ? Colors.red.shade600
                     : Colors.green.shade700,
               ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          // Delete button
+          GestureDetector(
+            onTap: () => _confirmDelete(context),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline,
+                  size: 18, color: Colors.red),
             ),
           ),
           const SizedBox(width: 6),
