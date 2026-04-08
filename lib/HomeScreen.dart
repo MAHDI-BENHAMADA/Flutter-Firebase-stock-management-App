@@ -164,16 +164,20 @@ class _HomeBody extends StatelessWidget {
                   ),
                 ),
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-                  sliver: SliverList(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.0,
+                    ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) {
                         final entry = categories[i];
                         final totalQty = entry.value.fold<int>(
-                            0,
-                            (s, p) =>
-                                s + (p['quantity'] as int? ?? 0));
-                        return _CategoryCard(
+                            0, (s, p) => s + (p['quantity'] as int? ?? 0));
+                        return _CategoryGridTile(
                           categoryName: entry.key,
                           products: entry.value,
                           totalQuantity: totalQty,
@@ -295,188 +299,154 @@ class _StatPill extends StatelessWidget {
 
 // ── Category card ──────────────────────────────────────────────────────────────
 
-class _CategoryCard extends StatefulWidget {
+// ── Category Grid Tile ─────────────────────────────────────────────────────────
+
+class _CategoryGridTile extends StatelessWidget {
   final String categoryName;
   final List<Map<String, dynamic>> products;
   final int totalQuantity;
 
-  const _CategoryCard({
+  const _CategoryGridTile({
     required this.categoryName,
     required this.products,
     required this.totalQuantity,
   });
 
-  @override
-  State<_CategoryCard> createState() => _CategoryCardState();
-}
-
-class _CategoryCardState extends State<_CategoryCard> {
-  bool _expanded = false;
-  static const Color _purple = Color.fromRGBO(107, 59, 225, 1);
-
   Color get _stockColor {
-    if (widget.totalQuantity < kLowStockThreshold) return Colors.red.shade400;
-    if (widget.totalQuantity < 15) return Colors.orange.shade400;
+    if (totalQuantity < kLowStockThreshold) return Colors.red.shade400;
+    if (totalQuantity < 15) return Colors.orange.shade400;
     return Colors.green.shade500;
   }
 
   String get _stockLabel {
-    if (widget.totalQuantity < kLowStockThreshold) return 'LOW';
-    if (widget.totalQuantity < 15) return 'MED';
-    return 'OK';
+    if (totalQuantity < kLowStockThreshold) return 'Low Stock';
+    if (totalQuantity < 15) return 'Medium';
+    return 'In Stock';
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _expanded
-              ? _purple.withValues(alpha: 0.35)
-              : Colors.grey.shade200,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _expanded
-                ? _purple.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: _stockColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${widget.totalQuantity}',
-                          style: TextStyle(
-                            color: _stockColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          _stockLabel,
-                          style: TextStyle(
-                            color: _stockColor,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.categoryName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color(0xFF1A1A2E),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${widget.products.length} product${widget.products.length != 1 ? 's' : ''}',
-                          style: TextStyle(
-                              color: Colors.grey.shade500, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 9, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _stockColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(
-                                color: _stockColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.totalQuantity < kLowStockThreshold
-                                  ? 'Low Stock'
-                                  : widget.totalQuantity < 15
-                                      ? 'Medium'
-                                      : 'In Stock',
-                              style: TextStyle(
-                                color: _stockColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Icon(
-                        _expanded
-                            ? Icons.keyboard_arrow_up
-                            : Icons.keyboard_arrow_down,
-                        color: Colors.grey.shade400,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CategoryProductsScreen(
+              categoryName: categoryName,
+              products: products,
             ),
           ),
-          if (_expanded) ...[
-            Divider(
-                height: 1,
-                color: Colors.grey.shade200,
-                indent: 16,
-                endIndent: 16),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: widget.products.length,
-              separatorBuilder: (_, __) =>
-                  Divider(height: 1, color: Colors.grey.shade100),
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(107, 59, 225, 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.category_rounded,
+                    color: Color.fromRGBO(107, 59, 225, 1),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _stockColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _stockLabel,
+                    style: TextStyle(
+                      color: _stockColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  categoryName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFF1A1A2E),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${products.length} product${products.length != 1 ? 's' : ''}',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$totalQuantity total units',
+                  style: TextStyle(color: _stockColor, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Category Products Screen ───────────────────────────────────────────────────
+
+class CategoryProductsScreen extends StatelessWidget {
+  final String categoryName;
+  final List<Map<String, dynamic>> products;
+
+  const CategoryProductsScreen({
+    super.key,
+    required this.categoryName,
+    required this.products,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(categoryName),
+        backgroundColor: const Color.fromRGBO(107, 59, 225, 1),
+        foregroundColor: Colors.white,
+      ),
+      body: products.isEmpty
+          ? const Center(child: Text("No items in this category."))
+          : ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              itemCount: products.length,
+              separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade200),
               itemBuilder: (context, i) {
-                final p = widget.products[i];
+                final p = products[i];
                 final qty = p['quantity'] as int? ?? 0;
                 final docId = p['__docId'] as String;
                 return _ProductTile(
@@ -486,9 +456,6 @@ class _CategoryCardState extends State<_CategoryCard> {
                 );
               },
             ),
-          ],
-        ],
-      ),
     );
   }
 }
