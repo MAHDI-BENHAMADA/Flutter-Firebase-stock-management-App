@@ -426,6 +426,9 @@ class _CategoryCardState extends State<_CategoryCard>
               itemBuilder: (context, i) {
                 final p = widget.products[i];
                 final qty = p['quantity'] as int? ?? 0;
+                final numberOfSkus = p['numberOfSkus'] as int? ?? 0;
+                final unitsPerSku = p['unitsPerSku'] as int? ?? 0;
+                final docId = p['__docId'] as String?;
                 return ListTile(
                   dense: true,
                   contentPadding:
@@ -456,25 +459,62 @@ class _CategoryCardState extends State<_CategoryCard>
                     style: TextStyle(
                         fontSize: 11, color: Colors.grey.shade500),
                   ),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: qty < kLowStockThreshold
-                          ? Colors.red.withOpacity(0.1)
-                          : Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$qty units',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: qty < kLowStockThreshold
-                            ? Colors.red.shade600
-                            : Colors.green.shade700,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          if (docId == null) return;
+                          int newSkus = numberOfSkus - 1;
+                          if (newSkus < 0) return;
+                          int newQty = newSkus * unitsPerSku;
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .collection('products')
+                              .doc(docId)
+                              .update({
+                            'numberOfSkus': newSkus,
+                            'quantity': newQty,
+                          });
+                        },
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('$numberOfSkus Boxes',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text('$qty units',
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 10)),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle, color: Colors.green),
+                         padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          if (docId == null) return;
+                          int newSkus = numberOfSkus + 1;
+                          int newQty = newSkus * unitsPerSku;
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .collection('products')
+                              .doc(docId)
+                              .update({
+                            'numberOfSkus': newSkus,
+                            'quantity': newQty,
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 );
               },

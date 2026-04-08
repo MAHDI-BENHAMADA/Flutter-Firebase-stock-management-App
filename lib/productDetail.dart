@@ -158,9 +158,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     fontWeight: FontWeight.w500,
                     color: Colors.red)),
             const SizedBox(height: 10.0),
-            Text('Supplier: ${_product.distributor}',
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+            Text('Boxes (SKUs): ${_product.numberOfSkus}',
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 10.0),
+            Text('Units per Box: ${_product.unitsPerSku}',
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w500)),
             const SizedBox(height: 10.0),
             Text('Available Units: ${_product.quantity}',
                 style: const TextStyle(

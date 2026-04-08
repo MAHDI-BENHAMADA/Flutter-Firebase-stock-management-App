@@ -22,9 +22,9 @@ class _AddProductFormState extends State<AddProductForm> {
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _quantityController = TextEditingController();
+  final _numberOfSkusController = TextEditingController();
+  final _unitsPerSkuController = TextEditingController();
   final _priceController = TextEditingController();
-  final _distributorController = TextEditingController();
   final _pidController = TextEditingController();
 
   String? _selectedCategory;
@@ -45,9 +45,9 @@ class _AddProductFormState extends State<AddProductForm> {
   @override
   void dispose() {
     _nameController.dispose();
-    _quantityController.dispose();
+    _numberOfSkusController.dispose();
+    _unitsPerSkuController.dispose();
     _priceController.dispose();
-    _distributorController.dispose();
     _pidController.dispose();
     super.dispose();
   }
@@ -86,7 +86,7 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final picked = await _imagePicker.pickImage(source: source);
+    final picked = await _imagePicker.pickImage(source: source, imageQuality: 30);
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
@@ -135,9 +135,10 @@ class _AddProductFormState extends State<AddProductForm> {
           .add({
         'name': newProduct.name,
         'pid': newProduct.pid,
-        'quantity': newProduct.quantity,
+        'quantity': newProduct.numberOfSkus * newProduct.unitsPerSku,
+        'numberOfSkus': newProduct.numberOfSkus,
+        'unitsPerSku': newProduct.unitsPerSku,
         'price': newProduct.price,
-        'distributor': newProduct.distributor,
         'category': newProduct.category,
         'expiredate': newProduct.expiredate,
         'imageUrl': imageUrl,
@@ -155,9 +156,9 @@ class _AddProductFormState extends State<AddProductForm> {
 
   void _clearForm() {
     _nameController.clear();
-    _quantityController.clear();
+    _numberOfSkusController.clear();
+    _unitsPerSkuController.clear();
     _priceController.clear();
-    _distributorController.clear();
     _pidController.clear();
     setState(() {
       _selectedCategory = null;
@@ -270,14 +271,25 @@ class _AddProductFormState extends State<AddProductForm> {
               ),
               const SizedBox(height: 16),
 
-              // ── Quantity ──────────────────────────────────────────────────
+              // ── Number of SKUs (Boxes) ──────────────────────────────────────────────────
               TextFormField(
-                controller: _quantityController,
+                controller: _numberOfSkusController,
                 cursorColor: _purple,
                 keyboardType: TextInputType.number,
-                decoration: _fieldDecoration('Quantity'),
+                decoration: _fieldDecoration('Number of Boxes (SKUs)'),
                 validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Please enter a quantity' : null,
+                    (v == null || v.isEmpty) ? 'Please enter a number of boxes' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // ── Units per SKU ──────────────────────────────────────────────────
+              TextFormField(
+                controller: _unitsPerSkuController,
+                cursorColor: _purple,
+                keyboardType: TextInputType.number,
+                decoration: _fieldDecoration('Units per Box'),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Please enter units per box' : null,
               ),
               const SizedBox(height: 16),
 
@@ -293,13 +305,7 @@ class _AddProductFormState extends State<AddProductForm> {
               ),
               const SizedBox(height: 16),
 
-              // ── Distributor ───────────────────────────────────────────────
-              TextFormField(
-                controller: _distributorController,
-                cursorColor: _purple,
-                decoration: _fieldDecoration('Distributor (Optional)'),
-              ),
-              const SizedBox(height: 16),
+
 
               // ── Category dropdown ─────────────────────────────────────────
               StreamBuilder<List<String>>(
@@ -392,9 +398,10 @@ class _AddProductFormState extends State<AddProductForm> {
                   final newProduct = Product(
                     name: _nameController.text.trim(),
                     pid: _pidController.text.trim(),
-                    quantity: int.parse(_quantityController.text),
+                    quantity: int.parse(_numberOfSkusController.text) * int.parse(_unitsPerSkuController.text),
+                    numberOfSkus: int.parse(_numberOfSkusController.text),
+                    unitsPerSku: int.parse(_unitsPerSkuController.text),
                     price: double.parse(_priceController.text),
-                    distributor: _distributorController.text.trim(),
                     category: _selectedCategory!,
                     expiredate: _formattedExpiry,
                     imageUrl: _pickedImage.path,

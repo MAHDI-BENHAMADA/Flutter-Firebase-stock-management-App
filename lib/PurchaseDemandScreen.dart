@@ -44,6 +44,41 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
   final List<_DemandItem> _items = [];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchZeroSkuItems();
+  }
+
+  Future<void> _fetchZeroSkuItems() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    
+    final snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('products')
+        .where('numberOfSkus', isEqualTo: 0)
+        .get();
+
+    if (!mounted) return;
+
+    setState(() {
+      for (var doc in snap.docs) {
+        final data = doc.data();
+        // Avoid adding duplicates if already present
+        if (!_items.any((i) => i.docId == doc.id)) {
+          _items.add(_DemandItem(
+            docId: doc.id,
+            name: (data['name'] as String?)?.trim() ?? 'Unnamed',
+            category: (data['category'] as String?)?.trim() ?? 'Uncategorized',
+            currentStock: data['numberOfSkus'] as int? ?? 0,
+          ));
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     for (final item in _items) item.dispose();
     super.dispose();
@@ -74,7 +109,7 @@ class _PurchaseDemandScreenState extends State<PurchaseDemandScreen> {
         'docId': doc.id,
         'name': (data['name'] as String?)?.trim() ?? 'Unnamed',
         'category': (data['category'] as String?)?.trim() ?? 'Uncategorized',
-        'currentStock': data['quantity'] as int? ?? 0,
+        'currentStock': data['numberOfSkus'] as int? ?? 0,
       };
     }).toList();
 
