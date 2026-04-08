@@ -63,40 +63,66 @@ class _SearChBarState extends State<SearChBar> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      width: MediaQuery.of(context).size.width * 0.82,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04), // Note: using withOpacity is standard here
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: TextFormField(
         controller: _searchController,
-        onChanged: (value) => performSearch(value),
+        onChanged: (value) {
+          performSearch(value);
+          setState(() {}); // to optionally refresh suffix icon logic
+        },
+        onFieldSubmitted: (_) => _showSearchResults(context),
         cursorColor: const Color.fromRGBO(107, 59, 225, 1),
-        keyboardType: TextInputType.text,
+        textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: "Search...",
-          enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(
-              width: 2,
-              color: Color.fromRGBO(107, 59, 225, 1),
-            ),
-            borderRadius: BorderRadius.all(Radius.circular(5)),
+          hintText: "Search inventory...",
+          hintStyle: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 15,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: Colors.grey,
+            size: 22,
           ),
           suffixIcon: GestureDetector(
-            onTap: () {
-              _showSearchResults(context); // Trigger search here
-            },
-            child: const Icon(
-              Icons.search_outlined,
-              color: Color.fromRGBO(107, 59, 225, 1),
+            onTap: () => _showSearchResults(context),
+            child: Container(
+              margin: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(107, 59, 225, 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                color: Color.fromRGBO(107, 59, 225, 1),
+                size: 20,
+              ),
             ),
           ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Color.fromRGBO(107, 59, 225, 1),
-              width: 4,
-            ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
           ),
-          hintStyle: const TextStyle(
-            color: Colors.grey,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: Color.fromRGBO(107, 59, 225, 0.4),
+              width: 1.5,
+            ),
           ),
         ),
       ),
