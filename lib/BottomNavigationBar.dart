@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wa_inventory/CategoryOverviewScreen.dart';
+import 'package:wa_inventory/AddItemScreen.dart';
 import 'package:wa_inventory/HomeScreen.dart';
-import 'package:wa_inventory/ItemsList.dart';
-import 'package:wa_inventory/profileScreen.dart';
 import 'package:wa_inventory/PurchaseDemandScreen.dart';
-import 'package:wa_inventory/ReportPage.dart';
+import 'package:wa_inventory/profileScreen.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
@@ -19,9 +17,8 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const CategoryOverviewScreen(),   // replaces old "Items" tab
+    const AddProductForm(),
     const PurchaseDemandScreen(),
-    ReportPage(),
     const ProfilePage(),
   ];
 
@@ -59,19 +56,14 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.category_outlined),
-              activeIcon: Icon(Icons.category),
-              label: 'Categories',
+              icon: Icon(Icons.add_box_outlined),
+              activeIcon: Icon(Icons.add_box),
+              label: 'Add Item',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.shopping_cart_outlined),
               activeIcon: Icon(Icons.shopping_cart),
               label: 'Purchase',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_outlined),
-              activeIcon: Icon(Icons.bar_chart),
-              label: 'Report',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_circle_outlined),
