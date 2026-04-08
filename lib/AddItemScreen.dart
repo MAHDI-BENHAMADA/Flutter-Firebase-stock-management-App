@@ -261,13 +261,10 @@ class _AddProductFormState extends State<AddProductForm> {
                   child: TextFormField(
                     cursorColor: _purple,
                     decoration: _fieldDecoration(
-                      'Expiry Date',
+                      'Expiry Date (Optional)',
                       suffix: const Icon(Icons.calendar_today, color: _purple),
                     ),
                     controller: TextEditingController(text: _formattedExpiry),
-                    validator: (_) => _selectedExpireDate == null
-                        ? 'Please select an expiry date'
-                        : null,
                   ),
                 ),
               ),
@@ -300,10 +297,7 @@ class _AddProductFormState extends State<AddProductForm> {
               TextFormField(
                 controller: _distributorController,
                 cursorColor: _purple,
-                decoration: _fieldDecoration('Distributor'),
-                validator: (v) => (v == null || v.isEmpty)
-                    ? 'Please enter a distributor'
-                    : null,
+                decoration: _fieldDecoration('Distributor (Optional)'),
               ),
               const SizedBox(height: 16),
 
